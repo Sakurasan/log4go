@@ -63,6 +63,11 @@ const (
 )
 
 /****** Constants ******/
+var logCallerLevel = 2
+
+func SetCallerLevel(level int) {
+	logCallerLevel = level
+}
 
 // These are the integer logging levels used by the logger
 type Level int
@@ -196,7 +201,7 @@ func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
 	}
 
 	// Determine caller func
-	pc, _, lineno, ok := runtime.Caller(2)
+	pc, _, lineno, ok := runtime.Caller(logCallerLevel)
 	src := ""
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
@@ -240,7 +245,7 @@ func (log Logger) intLogc(lvl Level, closure func() string) {
 	}
 
 	// Determine caller func
-	pc, _, lineno, ok := runtime.Caller(2)
+	pc, _, lineno, ok := runtime.Caller(logCallerLevel)
 	src := ""
 	if ok {
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
