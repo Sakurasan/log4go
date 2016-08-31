@@ -63,10 +63,14 @@ const (
 )
 
 /****** Constants ******/
-var logCallerLevel = 2
+const (
+	DEFAULT_CALLER_LEVEL = 2
+)
+
+var logCallerLevel = DEFAULT_CALLER_LEVEL
 
 func SetCallerLevel(level int) {
-	logCallerLevel = level
+	logCallerLevel = DEFAULT_CALLER_LEVEL + level
 }
 
 // These are the integer logging levels used by the logger
