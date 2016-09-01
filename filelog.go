@@ -249,7 +249,9 @@ func (w *FileLogWriter) SetHeadFoot(head, foot string) *FileLogWriter {
 // message is written.
 func (w *FileLogWriter) SetRotateLines(maxlines int) *FileLogWriter {
 	//fmt.Fprintf(os.Stderr, "FileLogWriter.SetRotateLines: %v\n", maxlines)
-	w.maxlines = maxlines
+	if maxlines > 0 {
+		w.maxlines = maxlines
+	}
 	return w
 }
 
@@ -257,7 +259,9 @@ func (w *FileLogWriter) SetRotateLines(maxlines int) *FileLogWriter {
 // is written.
 func (w *FileLogWriter) SetRotateSize(maxsize int) *FileLogWriter {
 	//fmt.Fprintf(os.Stderr, "FileLogWriter.SetRotateSize: %v\n", maxsize)
-	w.maxsize = maxsize
+	if maxsize > 0 {
+		w.maxsize = maxsize
+	}
 	return w
 }
 
@@ -272,7 +276,9 @@ func (w *FileLogWriter) SetRotateDaily(daily bool) *FileLogWriter {
 // Set max backup files. Must be called before the first log message
 // is written.
 func (w *FileLogWriter) SetRotateMaxBackup(maxbackup int) *FileLogWriter {
-	w.maxbackup = maxbackup
+	if maxbackup > 0 {
+		w.maxbackup = maxbackup
+	}
 	return w
 }
 
