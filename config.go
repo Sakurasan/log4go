@@ -168,10 +168,17 @@ func strToNumSuffix(str string, mult int) int {
 	return parsed * num
 }
 
-func strToNumSimple(str string, default_val int) int {
+func strToInt(str string) int {
 	n, err := strconv.Atoi(str)
 	if err != nil {
-		return default_val
+		return 0
+	}
+	return n
+}
+func strToI64(str string) int64 {
+	n, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0
 	}
 	return n
 }
@@ -180,7 +187,7 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
 	file := ""
 	format := "[%D %T] [%L] (%S) %M"
 	maxlines := 0
-	maxsize := 0
+	var maxsize int64 = 0
 	maxbackup := 0
 	daily := false
 	rotate := false
@@ -195,9 +202,9 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
 		case "maxlines":
 			maxlines = strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1000)
 		case "maxsize":
-			maxsize = strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1024)
+			maxsize = int64(strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1024))
 		case "maxbackup":
-			maxbackup = strToNumSimple(strings.Trim(prop.Value, " \r\n"), 0)
+			maxbackup = strToInt(strings.Trim(prop.Value, " \r\n"))
 		case "daily":
 			daily = strings.Trim(prop.Value, " \r\n") != "false"
 		case "rotate":
@@ -230,7 +237,7 @@ func xmlToFileLogWriter(filename string, props []xmlProperty, enabled bool) (*Fi
 func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*FileLogWriter, bool) {
 	file := ""
 	maxrecords := 0
-	maxsize := 0
+	var maxsize int64 = 0
 	daily := false
 	rotate := false
 
@@ -242,7 +249,7 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
 		case "maxrecords":
 			maxrecords = strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1000)
 		case "maxsize":
-			maxsize = strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1024)
+			maxsize = int64(strToNumSuffix(strings.Trim(prop.Value, " \r\n"), 1024))
 		case "daily":
 			daily = strings.Trim(prop.Value, " \r\n") != "false"
 		case "rotate":

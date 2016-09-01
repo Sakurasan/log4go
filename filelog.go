@@ -28,8 +28,8 @@ type FileLogWriter struct {
 	maxlines_curlines int
 
 	// Rotate at size
-	maxsize         int
-	maxsize_cursize int
+	maxsize         int64
+	maxsize_cursize int64
 
 	// Rotate daily
 	daily          bool
@@ -119,7 +119,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 
 				// Update the counts
 				w.maxlines_curlines++
-				w.maxsize_cursize += n
+				w.maxsize_cursize += int64(n)
 
 			}
 		}
@@ -224,6 +224,12 @@ func (w *FileLogWriter) intOpen() error {
 	w.maxlines_curlines = 0
 	w.maxsize_cursize = 0
 
+	var fstat os.FileInfo
+	fstat, err = os.Lstat(w.filename)
+	if err == nil {
+		w.maxsize_cursize = fstat.Size()
+	}
+
 	return nil
 }
 
@@ -257,7 +263,7 @@ func (w *FileLogWriter) SetRotateLines(maxlines int) *FileLogWriter {
 
 // Set rotate at size (chainable). Must be called before the first log message
 // is written.
-func (w *FileLogWriter) SetRotateSize(maxsize int) *FileLogWriter {
+func (w *FileLogWriter) SetRotateSize(maxsize int64) *FileLogWriter {
 	//fmt.Fprintf(os.Stderr, "FileLogWriter.SetRotateSize: %v\n", maxsize)
 	if maxsize > 0 {
 		w.maxsize = maxsize
