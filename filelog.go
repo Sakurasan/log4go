@@ -46,6 +46,12 @@ func (w *FileLogWriter) LogWrite(rec *LogRecord) {
 }
 
 func (w *FileLogWriter) Close() {
+
+	// Wait write coroutine
+	for len(w.rec) > 0 {
+		time.Sleep(100 * time.Millisecond)
+	}
+
 	close(w.rec)
 	w.file.Sync()
 }
@@ -114,6 +120,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 				// Update the counts
 				w.maxlines_curlines++
 				w.maxsize_cursize += n
+
 			}
 		}
 	}()
