@@ -199,13 +199,14 @@ func (log Logger) Close() {
 // Add a new LogWriter to the Logger which will only log messages at lvl or
 // higher.  This function should not be called from multiple goroutines.
 // Returns the logger for chaining.
-func (log Logger) AddFilter(name string, lvl Level, writer LogWriter) Logger {
+// func (log *Logger) AddFilter(name string, lvl Level, writer LogWriter) Logger {
+func (log *Logger) AddFilter(name string, lvl Level, writer LogWriter) {
 	log.FilterMap[name] = &Filter{lvl, writer}
 	if lvl < log.minLevel {
 		log.minLevel = lvl
 	}
 
-	return log
+	// return *log
 }
 
 /******* Logging *******/
@@ -523,4 +524,8 @@ func (log Logger) Critical(arg0 interface{}, args ...interface{}) error {
 	log.intLogf(lvl, msg)
 	// return errors.New(msg)
 	return nil
+}
+
+func (log Logger) Critic(arg0 interface{}, args ...interface{}) error {
+	return log.Critical(arg0, args...)
 }
