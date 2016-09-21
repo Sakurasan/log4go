@@ -8,5 +8,7 @@
 - 2016/09/21
 	> add Logger{FilterMap, minLevel}
 	>
-	> add remark
+	> add l4g.Close for examples/XMLConfigurationExample.go
+	>
+	> delete redundant l4g.Close for examples/FileLogWriter_Manual.go
 

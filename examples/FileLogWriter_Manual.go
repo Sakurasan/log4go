@@ -22,7 +22,7 @@ func main() {
 
 	// Create a default logger that is logging messages of FINE or higher
 	log.AddFilter("file", l4g.FINE, l4g.NewFileLogWriter(filename, false))
-	// log.Close()
+	// log.Close() // 20160921注释此行代码。此处调用Close，会导致下面的log无法输出
 
 	/* Can also specify manually via the following: (these are the defaults) */
 	flw := l4g.NewFileLogWriter(filename, false)
