@@ -11,4 +11,8 @@
 	> add l4g.Close for examples/XMLConfigurationExample.go
 	>
 	> delete redundant l4g.Close for examples/FileLogWriter_Manual.go
+	>
+	> modify the return value to nil of log.Warn & log.Error & log.Critical
+	>
+	> add Chinese remark for some key functions
 
