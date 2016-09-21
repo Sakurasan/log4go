@@ -29,8 +29,9 @@ type xmlLoggerConfig struct {
 }
 
 // Load XML configuration; see examples/example.xml for documentation
-func (log Logger) LoadConfiguration(filename string) Logger {
+func (log *Logger) LoadConfiguration(filename string) Logger {
 	log.Close()
+	log.minLevel = CRITICAL
 
 	// Open the configuration file
 	fd, err := os.Open(filename)
@@ -102,6 +103,9 @@ func (log Logger) LoadConfiguration(filename string) Logger {
 		if bad {
 			os.Exit(1)
 		}
+		if lvl < log.minLevel {
+			log.minLevel = lvl
+		}
 
 		switch xmlfilt.Type {
 		case "console":
@@ -130,7 +134,7 @@ func (log Logger) LoadConfiguration(filename string) Logger {
 		log.FilterMap[xmlfilt.Tag] = &Filter{lvl, filt}
 	}
 
-	return log
+	return *log
 }
 
 func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (*ConsoleLogWriter, bool) {
