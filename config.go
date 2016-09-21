@@ -29,7 +29,7 @@ type xmlLoggerConfig struct {
 }
 
 // Load XML configuration; see examples/example.xml for documentation
-func (log Logger) LoadConfiguration(filename string) {
+func (log Logger) LoadConfiguration(filename string) Logger {
 	log.Close()
 
 	// Open the configuration file
@@ -127,8 +127,10 @@ func (log Logger) LoadConfiguration(filename string) {
 			continue
 		}
 
-		log[xmlfilt.Tag] = &Filter{lvl, filt}
+		log.FilterMap[xmlfilt.Tag] = &Filter{lvl, filt}
 	}
+
+	return log
 }
 
 func xmlToConsoleLogWriter(filename string, props []xmlProperty, enabled bool) (*ConsoleLogWriter, bool) {

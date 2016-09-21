@@ -82,6 +82,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 	}
 
 	go func() {
+		// 关闭文件
 		defer func() {
 			if w.file != nil {
 				fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
@@ -91,15 +92,16 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 
 		for {
 			select {
-			case <-w.rot:
+			case <-w.rot: // 外部调用Rotate函数，切割log文件
 				if err := w.intRotate(); err != nil {
 					fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
 					return
 				}
 			case rec, ok := <-w.rec:
-				if !ok {
+				if !ok { // rec channel关闭了，退出这个log输出goroutine
 					return
 				}
+				// 满足相关设定，切割文件了
 				now := time.Now()
 				if (w.maxlines > 0 && w.maxlines_curlines >= w.maxlines) ||
 					(w.maxsize > 0 && w.maxsize_cursize >= w.maxsize) ||
@@ -111,6 +113,7 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 				}
 
 				// Perform the write
+				// 写log
 				n, err := fmt.Fprint(w.file, FormatLogRecord(w.format, rec))
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "FileLogWriter(%q): %s\n", w.filename, err)
@@ -120,7 +123,6 @@ func NewFileLogWriter(fname string, rotate bool) *FileLogWriter {
 				// Update the counts
 				w.maxlines_curlines++
 				w.maxsize_cursize += int64(n)
-
 			}
 		}
 	}()
@@ -134,14 +136,17 @@ func (w *FileLogWriter) Rotate() {
 }
 
 // If this is called in a threaded context, it MUST be synchronized
+// 关闭旧的文件，按照设置rename新的名称，再打开一个文件
 func (w *FileLogWriter) intRotate() error {
 	// Close any log file that may be open
+	// 切割日志文件前，先把当前打开的日志文件关闭
 	if w.file != nil {
 		fmt.Fprint(w.file, FormatLogRecord(w.trailer, &LogRecord{Created: time.Now()}))
 		w.file.Close()
 	}
 
 	// If we are keeping log files, move it to the next available number
+	// 为旧文件找到一个合适的名称
 	if w.rotate {
 		_, err := os.Lstat(w.filename)
 		if err == nil { // file exists
@@ -181,6 +186,7 @@ func (w *FileLogWriter) intRotate() error {
 	}
 
 	// Open the log file
+	// 打开新的文件
 	fd, err := os.OpenFile(w.filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0660)
 	if err != nil {
 		return err
@@ -201,6 +207,7 @@ func (w *FileLogWriter) intRotate() error {
 }
 
 // If this is called in a threaded context, it MUST be synchronized
+// 打开一个文件
 func (w *FileLogWriter) intOpen() error {
 	// Already opened
 	if w.file != nil {

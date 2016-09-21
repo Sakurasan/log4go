@@ -46,7 +46,7 @@
 package log4go
 
 import (
-	"errors"
+	/// "errors"
 	"fmt"
 	"os"
 	"runtime"
@@ -137,16 +137,22 @@ type Filter struct {
 	LogWriter
 }
 
+// string可以认为是Filter{logger对象}的logger name
+type FilterMap map[string]*Filter
+
 // A Logger represents a collection of Filters through which log messages are
 // written.
-type Logger map[string]*Filter
+type Logger struct {
+	FilterMap
+	minLevel Level
+}
 
 // Create a new logger.
 //
 // DEPRECATED: Use make(Logger) instead.
 func NewLogger() Logger {
-	os.Stderr.WriteString("warning: use of deprecated NewLogger\n")
-	return make(Logger)
+	// os.Stderr.WriteString("warning: use of deprecated NewLogger\n")
+	return Logger{FilterMap: make(FilterMap), minLevel: CRITICAL}
 }
 
 // Create a new logger with a "stdout" filter configured to send log messages at
@@ -154,18 +160,28 @@ func NewLogger() Logger {
 //
 // DEPRECATED: use NewDefaultLogger instead.
 func NewConsoleLogger(lvl Level) Logger {
+	// return Logger{
+	// 	"stdout": &Filter{lvl, NewConsoleLogWriter()},
+	// }
+
 	os.Stderr.WriteString("warning: use of deprecated NewConsoleLogger\n")
-	return Logger{
-		"stdout": &Filter{lvl, NewConsoleLogWriter()},
-	}
+	var logger = Logger{FilterMap: make(FilterMap), minLevel: CRITICAL}
+	logger.FilterMap["stdout"] = &Filter{lvl, NewConsoleLogWriter()}
+
+	return logger
 }
 
 // Create a new logger with a "stdout" filter configured to send log messages at
 // or above lvl to standard output.
 func NewDefaultLogger(lvl Level) Logger {
-	return Logger{
-		"stdout": &Filter{lvl, NewConsoleLogWriter()},
-	}
+	// return Logger{
+	// 	"stdout": &Filter{lvl, NewConsoleLogWriter()},
+	// }
+
+	var logger = Logger{FilterMap: make(FilterMap), minLevel: CRITICAL}
+	logger.FilterMap["stdout"] = &Filter{lvl, NewConsoleLogWriter()}
+
+	return logger
 }
 
 // Closes all log writers in preparation for exiting the program or a
@@ -174,9 +190,9 @@ func NewDefaultLogger(lvl Level) Logger {
 // all filters (and thus all LogWriters) from the logger.
 func (log Logger) Close() {
 	// Close all open loggers
-	for name, filt := range log {
+	for name, filt := range log.FilterMap {
 		filt.Close()
-		delete(log, name)
+		delete(log.FilterMap, name)
 	}
 }
 
@@ -184,23 +200,29 @@ func (log Logger) Close() {
 // higher.  This function should not be called from multiple goroutines.
 // Returns the logger for chaining.
 func (log Logger) AddFilter(name string, lvl Level, writer LogWriter) Logger {
-	log[name] = &Filter{lvl, writer}
+	log.FilterMap[name] = &Filter{lvl, writer}
+	if lvl < log.minLevel {
+		log.minLevel = lvl
+	}
+
 	return log
 }
 
 /******* Logging *******/
 // Send a formatted log message internally
 func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
-	skip := true
-
 	// Determine if any logging will be done
-	for _, filt := range log {
-		if lvl >= filt.Level {
-			skip = false
-			break
-		}
-	}
-	if skip {
+	// skip := true
+	// for _, filt := range log.FilterMap {
+	// 	if lvl >= filt.Level {
+	// 		skip = false
+	// 		break
+	// 	}
+	// }
+	// if skip {
+	// 	return
+	// }
+	if lvl < log.minLevel {
 		return
 	}
 
@@ -208,6 +230,9 @@ func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
 	pc, _, lineno, ok := runtime.Caller(logCallerLevel)
 	src := ""
 	if ok {
+		// 此处不输出filename是有道理的，因为finename会附带有文件路径，这回导致log prefix非常长, for example:
+		// [2016/09/21 14:16:39 CST] [WARN] (github.com/AlexStocks/goext/src/log.TestNewLogger: \
+		// C:/Users/AlexStocks/share/test/golang/lib/src/github.com/AlexStocks/goext/src/log/log_test.go:28) warning msg: 0
 		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
 	}
 
@@ -225,8 +250,9 @@ func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
 	}
 
 	// Dispatch the logs
-	for _, filt := range log {
-		if lvl < filt.Level {
+	// 根据level，把log内容输出到各个logger
+	for _, filt := range log.FilterMap {
+		if lvl < filt.Level { // log4go实在log message已经拼写完毕后再输出判断level是否合适，这会导致效率非常低
 			continue
 		}
 		filt.LogWrite(rec)
@@ -235,16 +261,18 @@ func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
 
 // Send a closure log message internally
 func (log Logger) intLogc(lvl Level, closure func() string) {
-	skip := true
-
-	// Determine if any logging will be done
-	for _, filt := range log {
-		if lvl >= filt.Level {
-			skip = false
-			break
-		}
-	}
-	if skip {
+	// // Determine if any logging will be done
+	// skip := true
+	// for _, filt := range log {
+	// 	if lvl >= filt.Level {
+	// 		skip = false
+	// 		break
+	// 	}
+	// }
+	// if skip {
+	// 	return
+	// }
+	if lvl < log.minLevel {
 		return
 	}
 
@@ -264,7 +292,7 @@ func (log Logger) intLogc(lvl Level, closure func() string) {
 	}
 
 	// Dispatch the logs
-	for _, filt := range log {
+	for _, filt := range log.FilterMap {
 		if lvl < filt.Level {
 			continue
 		}
@@ -274,16 +302,18 @@ func (log Logger) intLogc(lvl Level, closure func() string) {
 
 // Send a log message with manual level, source, and message.
 func (log Logger) Log(lvl Level, source, message string) {
-	skip := true
-
 	// Determine if any logging will be done
-	for _, filt := range log {
-		if lvl >= filt.Level {
-			skip = false
-			break
-		}
-	}
-	if skip {
+	// skip := true
+	// for _, filt := range log {
+	// 	if lvl >= filt.Level {
+	// 		skip = false
+	// 		break
+	// 	}
+	// }
+	// if skip {
+	// 	return
+	// }
+	if lvl < log.minLevel {
 		return
 	}
 
@@ -296,7 +326,7 @@ func (log Logger) Log(lvl Level, source, message string) {
 	}
 
 	// Dispatch the logs
-	for _, filt := range log {
+	for _, filt := range log.FilterMap {
 		if lvl < filt.Level {
 			continue
 		}
@@ -443,7 +473,8 @@ func (log Logger) Warn(arg0 interface{}, args ...interface{}) error {
 		msg = fmt.Sprintf(fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
 	}
 	log.intLogf(lvl, msg)
-	return errors.New(msg)
+	// return errors.New(msg)
+	return nil
 }
 
 // Error logs a message at the error log level and returns the formatted error,
@@ -466,7 +497,8 @@ func (log Logger) Error(arg0 interface{}, args ...interface{}) error {
 		msg = fmt.Sprintf(fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
 	}
 	log.intLogf(lvl, msg)
-	return errors.New(msg)
+	// return errors.New(msg)
+	return nil
 }
 
 // Critical logs a message at the critical log level and returns the formatted error,
@@ -489,5 +521,6 @@ func (log Logger) Critical(arg0 interface{}, args ...interface{}) error {
 		msg = fmt.Sprintf(fmt.Sprint(first)+strings.Repeat(" %v", len(args)), args...)
 	}
 	log.intLogf(lvl, msg)
-	return errors.New(msg)
+	// return errors.New(msg)
+	return nil
 }

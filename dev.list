@@ -1,0 +1,12 @@
+# log4go #
+---
+*golang logger of log4j*
+
+## dev list ##
+---
+
+- 2016/09/21
+	> add Logger{FilterMap, minLevel}
+	>
+	> add remark
+

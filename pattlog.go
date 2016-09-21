@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	FORMAT_DEFAULT = "[%D %T] [%L] (%S) %M"
-	FORMAT_SHORT   = "[%t %d] [%L] %M"
-	FORMAT_ABBREV  = "[%L] %M"
+	FORMAT_DEFAULT = "[%D %T] [%L] (%S) %M" // [时:分:秒 年月日] [level] (class:file:line) message
+	FORMAT_SHORT   = "[%t %d] [%L] %M"      // [小时:分钟 年月日] [level] message
+	FORMAT_ABBREV  = "[%L] %M"              // [level] message
 )
 
 type formatCacheType struct {
@@ -45,6 +45,7 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 	secs := rec.Created.UnixNano() / 1e9
 
 	cache := *formatCache
+	// 如果当前msg的时间与上一条消息的时间相等，则直接用cache中的时间string，减小format时间
 	if cache.LastUpdateSeconds != secs {
 		month, day, year := rec.Created.Month(), rec.Created.Day(), rec.Created.Year()
 		hour, minute, second := rec.Created.Hour(), rec.Created.Minute(), rec.Created.Second()
