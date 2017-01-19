@@ -5,7 +5,12 @@ package log4go
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"time"
+)
+
+import (
+	"github.com/AlexStocks/goext/os"
 )
 
 // This log writer sends output to a file
@@ -212,6 +217,14 @@ func (w *FileLogWriter) intOpen() error {
 	// Already opened
 	if w.file != nil {
 		return nil
+	}
+
+	// 创建文件所在的路径
+	path := filepath.Dir(w.filename)
+	if path != "" {
+		if err := gxos.CreateDir(path); err != nil {
+			return err
+		}
 	}
 
 	// Open the log file
