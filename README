@@ -1,6 +1,8 @@
-# This is an unmaintained fork, left only so it doesn't break imports.
+# This is an fork maintained by AlexStocks.
 
-Please see http://log4go.googlecode.com/
+Please see http://log4go.googlecode.com/ for more log4go usages. My personal
+package( github.com/AlexStocks/goext/log/) wrappered log4go functions  further
+more.
 
 Installation:
 - Run `goinstall log4go.googlecode.com/hg`
