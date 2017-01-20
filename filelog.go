@@ -51,7 +51,6 @@ func (w *FileLogWriter) LogWrite(rec *LogRecord) {
 }
 
 func (w *FileLogWriter) Close() {
-
 	// Wait write coroutine
 	for len(w.rec) > 0 {
 		time.Sleep(100 * time.Millisecond)
@@ -221,7 +220,10 @@ func (w *FileLogWriter) intOpen() error {
 
 	// 创建文件所在的路径
 	path := filepath.Dir(w.filename)
-	if path != "" {
+	// filepath.Dir("hello.log") = "."
+	// filepath.Dir("./hello.log") = "."
+	// filepath.Dir("../hello.log") = "..
+	if path != "" && path != "." && path != ".." {
 		if err := gxos.CreateDir(path); err != nil {
 			return err
 		}
