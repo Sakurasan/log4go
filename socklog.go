@@ -14,7 +14,16 @@ type SocketLogWriter chan *LogRecord
 
 // This is the SocketLogWriter's output method
 func (w SocketLogWriter) LogWrite(rec *LogRecord) {
-	w <- rec
+	select {
+	case w <- rec:
+	default:
+		js, err := json.Marshal(rec)
+		if err != nil {
+			fmt.Printf("json error: %s", err)
+			return
+		}
+		fmt.Printf("log channel has been closed. " + string(js) + "\n")
+	}
 }
 
 func (w SocketLogWriter) Close() {

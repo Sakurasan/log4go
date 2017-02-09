@@ -7,14 +7,17 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 )
 
 var (
 	Global Logger
+	once   *sync.Once
 )
 
 func init() {
 	Global = NewDefaultLogger(DEBUG)
+	once = &sync.Once{}
 }
 
 // Wrapper for (*Logger).LoadConfiguration
@@ -29,7 +32,9 @@ func AddFilter(name string, lvl Level, writer LogWriter) {
 
 // Wrapper for (*Logger).Close (closes and removes all logwriters)
 func Close() {
-	Global.Close()
+	once.Do(func() {
+		Global.Close()
+	})
 }
 
 func Crash(args ...interface{}) {

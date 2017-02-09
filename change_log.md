@@ -5,6 +5,12 @@
 ## dev list ##
 ---
 
+- 2017/02/09
+	> bug fix: just closed once in log4go.go
+	>
+	> bug fix: add select-case in every LogWrite to avoid panic when log channel is closed.
+
+
 - 2016/09/21
 	> add Logger{FilterMap, minLevel}
 	>

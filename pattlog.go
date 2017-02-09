@@ -4,6 +4,7 @@ package log4go
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -117,7 +118,16 @@ func (w FormatLogWriter) run(out io.Writer, format string) {
 // This is the FormatLogWriter's output method.  This will block if the output
 // buffer is full.
 func (w FormatLogWriter) LogWrite(rec *LogRecord) {
-	w <- rec
+	select {
+	case w <- rec:
+	default:
+		js, err := json.Marshal(rec)
+		if err != nil {
+			fmt.Printf("json error: %s", err)
+			return
+		}
+		fmt.Printf("log channel has been closed. " + string(js) + "\n")
+	}
 }
 
 // Close stops the logger from sending messages to standard output.  Attempts to

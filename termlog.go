@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -14,6 +15,7 @@ var stdout io.Writer = os.Stdout
 // This is the standard writer that prints to standard output.
 type ConsoleLogWriter struct {
 	format string
+	lock   sync.Mutex
 	w      chan *LogRecord
 }
 
@@ -38,7 +40,11 @@ func (c *ConsoleLogWriter) run(out io.Writer) {
 // This is the ConsoleLogWriter's output method.  This will block if the output
 // buffer is full.
 func (c *ConsoleLogWriter) LogWrite(rec *LogRecord) {
-	c.w <- rec
+	select {
+	case c.w <- rec:
+	default:
+		fmt.Printf(FormatLogRecord("log channel has been closed."+c.format, rec))
+	}
 }
 
 // Close stops the logger from sending messages to standard output.  Attempts to
