@@ -5,6 +5,11 @@
 ## dev list ##
 ---
 
+- 2017/03/07
+	> bug fix: log4go panic when cannot open new log file
+	>
+	> version: 3.0.2
+	
 - 2017/02/09
 	> bug fix: just closed once in log4go.go
 	>

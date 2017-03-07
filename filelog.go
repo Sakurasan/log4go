@@ -193,19 +193,25 @@ func (w *FileLogWriter) intRotate() error {
 	// 打开新的文件
 	fd, err := os.OpenFile(w.filename, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0660)
 	if err != nil {
+		panic(err) // 打不开文件，说明fd耗完或者磁盘耗尽
 		return err
 	}
 	w.file = fd
 
-	now := time.Now()
-	fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: now}))
-
 	// Set the daily open date to the current date
+	now := time.Now()
 	w.daily_opendate = now.Day()
 
+	w.maxsize_cursize = 0
+	// 防止程序重启创建一个新的日志文件
+	if fstat, err := fd.Stat(); nil == err && nil != fstat {
+		w.maxsize_cursize = fstat.Size()
+		now = fstat.ModTime()
+	}
 	// initialize rotation values
 	w.maxlines_curlines = 0
-	w.maxsize_cursize = 0
+
+	fmt.Fprint(w.file, FormatLogRecord(w.header, &LogRecord{Created: now}))
 
 	return nil
 }
