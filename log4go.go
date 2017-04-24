@@ -49,6 +49,7 @@ import (
 	/// "errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
@@ -228,13 +229,13 @@ func (log Logger) intLogf(lvl Level, format string, args ...interface{}) {
 	}
 
 	// Determine caller func
-	pc, _, lineno, ok := runtime.Caller(logCallerLevel)
+	pc, fileName, lineno, ok := runtime.Caller(logCallerLevel)
 	src := ""
 	if ok {
 		// 此处不输出filename是有道理的，因为finename会附带有文件路径，这回导致log prefix非常长, for example:
 		// [2016/09/21 14:16:39 CST] [WARN] (github.com/AlexStocks/goext/src/log.TestNewLogger: \
 		// C:/Users/AlexStocks/share/test/golang/lib/src/github.com/AlexStocks/goext/src/log/log_test.go:28) warning msg: 0
-		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+		src = fmt.Sprintf("%s:%s:%d", filepath.Base(fileName), runtime.FuncForPC(pc).Name(), lineno)
 	}
 
 	msg := format
@@ -278,10 +279,10 @@ func (log Logger) intLogc(lvl Level, closure func() string) {
 	}
 
 	// Determine caller func
-	pc, _, lineno, ok := runtime.Caller(logCallerLevel)
+	pc, fileName, lineno, ok := runtime.Caller(logCallerLevel)
 	src := ""
 	if ok {
-		src = fmt.Sprintf("%s:%d", runtime.FuncForPC(pc).Name(), lineno)
+		src = fmt.Sprintf("%s:%s:%d", filepath.Base(fileName), runtime.FuncForPC(pc).Name(), lineno)
 	}
 
 	// Make the log record

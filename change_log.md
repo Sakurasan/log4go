@@ -5,6 +5,11 @@
 ## dev list ##
 ---
 
+- 2017/04/24
+   > improvement
+   * add filename in log4go.go:intLogf & intLogc
+   
+
 - 2017/03/07
 	> bug fix: log4go panic when cannot open new log file
 	>
