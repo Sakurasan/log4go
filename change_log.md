@@ -6,15 +6,17 @@
 ---
 
 - 2017/04/28
-   > bug fix
-   * add recover logic in file write function
-   * use maxbackup instead of 999
-   > feature
-   * add Logger:SetAsDefaultLogger to assign a logger object to Global
+    > bug fix
+    * add recover logic in file write function
+    * use maxbackup instead of 999
+    > feature
+    * add Logger:SetAsDefaultLogger to assign a logger object to Global
+    * rewrite logger:Close to guarantee it is closed once
+    > version: 3.0.3
 
 - 2017/04/24
-   > improvement
-   * add filename in log4go.go:intLogf & intLogc
+    > improvement
+    * add filename in log4go.go:intLogf & intLogc
    
 
 - 2017/03/07

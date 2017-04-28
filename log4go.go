@@ -57,10 +57,10 @@ import (
 
 // Version information
 const (
-	L4G_VERSION = "log4go-v3.0.2"
+	L4G_VERSION = "log4go-v3.0.3"
 	L4G_MAJOR   = 3
 	L4G_MINOR   = 0
-	L4G_BUILD   = 2
+	L4G_BUILD   = 3
 )
 
 /****** Constants ******/
@@ -195,10 +195,13 @@ func (log Logger) SetAsDefaultLogger() Logger {
 // you want to guarantee that all log messages are written.  Close removes
 // all filters (and thus all LogWriters) from the logger.
 func (log Logger) Close() {
-	// Close all open loggers
-	for name, filt := range log.FilterMap {
-		filt.Close()
-		delete(log.FilterMap, name)
+	m := log.FilterMap
+	log.FilterMap = nil
+	if m != nil {
+		// Close all open loggers
+		for _, filt := range m {
+			filt.Close()
+		}
 	}
 }
 
