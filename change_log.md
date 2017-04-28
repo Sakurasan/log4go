@@ -9,6 +9,8 @@
    > bug fix
    * add recover logic in file write function
    * use maxbackup instead of 999
+   > feature
+   * add Logger:SetAsDefaultLogger to assign a logger object to Global
 
 - 2017/04/24
    > improvement

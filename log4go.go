@@ -145,7 +145,7 @@ type FilterMap map[string]*Filter
 // written.
 type Logger struct {
 	FilterMap
-	minLevel Level
+	minLevel Level // 所有filter中最低的log level
 }
 
 // Create a new logger.
@@ -183,6 +183,11 @@ func NewDefaultLogger(lvl Level) Logger {
 	logger.FilterMap["stdout"] = &Filter{lvl, NewConsoleLogWriter()}
 
 	return logger
+}
+
+func (log Logger) SetAsDefaultLogger() Logger {
+	Global = log
+	return log
 }
 
 // Closes all log writers in preparation for exiting the program or a
