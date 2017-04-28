@@ -8,6 +8,7 @@
 - 2017/04/28
    > bug fix
    * add recover logic in file write function
+   * use maxbackup instead of 999
 
 - 2017/04/24
    > improvement
