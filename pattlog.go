@@ -118,16 +118,18 @@ func (w FormatLogWriter) run(out io.Writer, format string) {
 // This is the FormatLogWriter's output method.  This will block if the output
 // buffer is full.
 func (w FormatLogWriter) LogWrite(rec *LogRecord) {
-	select {
-	case w <- rec:
-	default:
-		js, err := json.Marshal(rec)
-		if err != nil {
-			fmt.Printf("json error: %s", err)
-			return
+	defer func() {
+		if e := recover(); e != nil {
+			js, err := json.Marshal(rec)
+			if err != nil {
+				fmt.Printf("json.Marshal(rec:%#v) = error{%#v}\n", rec, err)
+				return
+			}
+			fmt.Printf("log channel has been closed. " + string(js) + "\n")
 		}
-		fmt.Printf("log channel has been closed. " + string(js) + "\n")
-	}
+	}()
+
+	w <- rec
 }
 
 // Close stops the logger from sending messages to standard output.  Attempts to

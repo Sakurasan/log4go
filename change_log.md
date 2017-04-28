@@ -5,6 +5,10 @@
 ## dev list ##
 ---
 
+- 2017/04/28
+   > bug fix
+   * add recover logic in file write function
+
 - 2017/04/24
    > improvement
    * add filename in log4go.go:intLogf & intLogc

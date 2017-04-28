@@ -3,6 +3,7 @@
 package log4go
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -47,6 +48,17 @@ type FileLogWriter struct {
 
 // This is the FileLogWriter's output method
 func (w *FileLogWriter) LogWrite(rec *LogRecord) {
+	defer func() {
+		if e := recover(); e != nil {
+			js, err := json.Marshal(rec)
+			if err != nil {
+				fmt.Printf("json.Marshal(rec:%#v) = error{%#v}\n", rec, err)
+				return
+			}
+			fmt.Printf("log channel has been closed. rec:" + string(js) + "\n")
+		}
+	}()
+
 	w.rec <- rec
 }
 

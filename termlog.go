@@ -40,11 +40,13 @@ func (c *ConsoleLogWriter) run(out io.Writer) {
 // This is the ConsoleLogWriter's output method.  This will block if the output
 // buffer is full.
 func (c *ConsoleLogWriter) LogWrite(rec *LogRecord) {
-	select {
-	case c.w <- rec:
-	default:
-		fmt.Printf(FormatLogRecord("log channel has been closed."+c.format, rec))
-	}
+	defer func() {
+		if e := recover(); e != nil {
+			fmt.Printf(FormatLogRecord("log channel has been closed."+c.format, rec))
+		}
+	}()
+
+	c.w <- rec
 }
 
 // Close stops the logger from sending messages to standard output.  Attempts to
