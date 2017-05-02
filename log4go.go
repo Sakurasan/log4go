@@ -52,6 +52,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -146,6 +147,7 @@ type FilterMap map[string]*Filter
 type Logger struct {
 	FilterMap
 	minLevel Level // 所有filter中最低的log level
+	sync.Once
 }
 
 // Create a new logger.
@@ -195,14 +197,16 @@ func (log Logger) SetAsDefaultLogger() Logger {
 // you want to guarantee that all log messages are written.  Close removes
 // all filters (and thus all LogWriters) from the logger.
 func (log Logger) Close() {
-	m := log.FilterMap
-	log.FilterMap = nil
-	if m != nil {
-		// Close all open loggers
-		for _, filt := range m {
-			filt.Close()
+	log.Once.Do(func() {
+		m := log.FilterMap
+		log.FilterMap = nil
+		if m != nil {
+			// Close all open loggers
+			for _, filt := range m {
+				filt.Close()
+			}
 		}
-	}
+	})
 }
 
 // Add a new LogWriter to the Logger which will only log messages at lvl or

@@ -5,6 +5,10 @@
 ## dev list ##
 ---
 
+- 2017/05/02
+    > bug fix
+    * add sync.Once for every log Close func
+
 - 2017/04/28
     > bug fix
     * add recover logic in file write function

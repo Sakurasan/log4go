@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -44,6 +45,8 @@ type FileLogWriter struct {
 	// Keep old logfiles (.001, .002, etc)
 	rotate    bool
 	maxbackup int
+
+	sync.Once
 }
 
 // This is the FileLogWriter's output method
@@ -63,13 +66,15 @@ func (w *FileLogWriter) LogWrite(rec *LogRecord) {
 }
 
 func (w *FileLogWriter) Close() {
-	// Wait write coroutine
-	for len(w.rec) > 0 {
-		time.Sleep(100 * time.Millisecond)
-	}
+	w.Once.Do(func() {
+		// Wait write coroutine
+		for len(w.rec) > 0 {
+			time.Sleep(100 * time.Millisecond)
+		}
 
-	close(w.rec)
-	w.file.Sync()
+		close(w.rec)
+		w.file.Sync()
+	})
 }
 
 // NewFileLogWriter creates a new LogWriter which writes to the given file and

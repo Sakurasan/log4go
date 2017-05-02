@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 )
 
 const (
@@ -100,24 +101,28 @@ func FormatLogRecord(format string, rec *LogRecord) string {
 }
 
 // This is the standard writer that prints to standard output.
-type FormatLogWriter chan *LogRecord
-
-// This creates a new FormatLogWriter
-func NewFormatLogWriter(out io.Writer, format string) FormatLogWriter {
-	records := make(FormatLogWriter, LogBufferLength)
-	go records.run(out, format)
-	return records
+type FormatLogWriter struct {
+	rec chan *LogRecord
+	sync.Once
 }
 
-func (w FormatLogWriter) run(out io.Writer, format string) {
-	for rec := range w {
+// This creates a new FormatLogWriter
+func NewFormatLogWriter(out io.Writer, format string) *FormatLogWriter {
+	var w = &FormatLogWriter{}
+	w.rec = make(chan *LogRecord, LogBufferLength)
+	go w.run(out, format)
+	return w
+}
+
+func (w *FormatLogWriter) run(out io.Writer, format string) {
+	for rec := range w.rec {
 		fmt.Fprint(out, FormatLogRecord(format, rec))
 	}
 }
 
 // This is the FormatLogWriter's output method.  This will block if the output
 // buffer is full.
-func (w FormatLogWriter) LogWrite(rec *LogRecord) {
+func (w *FormatLogWriter) LogWrite(rec *LogRecord) {
 	defer func() {
 		if e := recover(); e != nil {
 			js, err := json.Marshal(rec)
@@ -129,11 +134,13 @@ func (w FormatLogWriter) LogWrite(rec *LogRecord) {
 		}
 	}()
 
-	w <- rec
+	w.rec <- rec
 }
 
 // Close stops the logger from sending messages to standard output.  Attempts to
 // send log messages to this logger after a Close have undefined behavior.
-func (w FormatLogWriter) Close() {
-	close(w)
+func (w *FormatLogWriter) Close() {
+	w.Once.Do(func() {
+		close(w.rec)
+	})
 }

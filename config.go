@@ -283,7 +283,7 @@ func xmlToXMLLogWriter(filename string, props []xmlProperty, enabled bool) (*Fil
 	return xlw, true
 }
 
-func xmlToSocketLogWriter(filename string, props []xmlProperty, enabled bool) (SocketLogWriter, bool) {
+func xmlToSocketLogWriter(filename string, props []xmlProperty, enabled bool) (*SocketLogWriter, bool) {
 	endpoint := ""
 	protocol := "udp"
 

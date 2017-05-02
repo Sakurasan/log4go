@@ -17,6 +17,7 @@ type ConsoleLogWriter struct {
 	format string
 	lock   sync.Mutex
 	w      chan *LogRecord
+	sync.Once
 }
 
 // This creates a new ConsoleLogWriter
@@ -52,6 +53,8 @@ func (c *ConsoleLogWriter) LogWrite(rec *LogRecord) {
 // Close stops the logger from sending messages to standard output.  Attempts to
 // send log messages to this logger after a Close have undefined behavior.
 func (c *ConsoleLogWriter) Close() {
-	close(c.w)
-	time.Sleep(50 * time.Millisecond) // Try to give console I/O time to complete
+	c.Once.Do(func() {
+		close(c.w)
+		time.Sleep(50 * time.Millisecond) // Try to give console I/O time to complete
+	})
 }
